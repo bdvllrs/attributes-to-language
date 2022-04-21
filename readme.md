@@ -5,11 +5,11 @@
 # Setup
 Latest stable
 ```
-pip install git+https://github.com/bdvllrs/bimGW.git@v0.1.0
+pip install git+https://github.com/bdvllrs/attributes-to-language.git@v0.1.0
 ```
 Master
 ```
-pip install git+https://github.com/bdvllrs/bimGW.git
+pip install git+https://github.com/bdvllrs/attributes-to-language.git
 ```
 
 # Documentation
