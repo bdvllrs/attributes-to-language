@@ -26,14 +26,15 @@ class Writer:
         return text
 
 
-class OptionsWriter:
-    def __init__(self, choices):
+class OptionsWriter(Writer):
+    def __init__(self, choices, caption=None, variants=None):
+        super(OptionsWriter, self).__init__(caption, variants)
         self.choices = choices
 
     def __call__(self, val):
         assert val in self.choices, f"{self.choices} does not contain options for {val}"
         selected_option = random.choice(self.choices[val])
-        return selected_option
+        return super(OptionsWriter, self).__call__(selected_option)
 
 
 class QuantizedWriter(Writer):
