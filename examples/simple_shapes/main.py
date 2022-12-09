@@ -7,7 +7,7 @@ if __name__ == '__main__':
     # Templates for the overall text. The items in {} can come from the associated key in the "variants" dict attributes
     # or from a kwargs given to the composer method.
     script_structures = [
-        "{start} {size} {color} {shape}, {located} {in_the} {location}{link} {rotation}.",
+        "{start} {size} {colorBefore} {shape}, {located} {in_the} {location}{link} {rotation}.",
         "{start} {color} {size} {shape}, {located} {in_the} {location}{link} {rotation}.",
         "{start} {size} {shape} in {color} color, {located} {in_the} {location}{link} {rotation}.",
         "{start} {size} {shape} in {color} color{link} {located} {in_the} {location} and {is?}{rotation}.",
@@ -17,6 +17,7 @@ if __name__ == '__main__':
 
     # Elements in the list of each variant is randomly chosen.
     variants = {
+        "colorBefore": ["{color}", "{color} colored"],
         "start": ["A", "It is a", "A kind of", "This is a", "There is a",
                   "The image is a", "The image represents a", "The image contains a"],
         "located": ["", "located"],

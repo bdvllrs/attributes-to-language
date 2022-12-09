@@ -17,6 +17,36 @@ class Composer:
         self.writers = available_writers
         self.modifiers = modifiers
 
+    def chose_element(self, attributes=None, name=None):
+        # Get value from writers if attribute
+        if attributes is not None and name is not None and name in self.writers.keys() and name in attributes.keys():
+            writer = random.choice(self.writers[name])
+            attr = attributes[name]
+            if not isinstance(attr, (list, tuple)):
+                attr = (attr,)
+            return writer(*attr)
+
+        if name is not None:
+            return random.choice(self.variants[name])
+
+        variants = dict()
+        for k, choices in self.variants.items():
+            variants[k] = random.choice(choices)
+        return variants
+
+    def get_variant(self, attributes, caption):
+        regex = r"\{([^\}]+)\}"
+        updates = {}
+        for match in re.finditer(regex, caption):
+            name = match.group(1)
+            updates[name] = self.chose_element(attributes, name)
+
+        if not len(updates):
+            return caption
+
+        caption = caption.format(**updates)
+        return self.get_variant(attributes, caption)
+
     def __call__(self, attributes):
         """
         Compose one sentence from a dict of attributes
@@ -28,23 +58,11 @@ class Composer:
         """
         # Select one of the templates
         selected_structure = random.choice(self.script_structures)
-        # Perform modifiers
+        # Execute modifiers
         if self.modifiers is not None:
             for modifier in self.modifiers:
                 selected_structure = modifier(selected_structure)
-        # Decide which variants will be used
-        variants = dict()
-        for k, choices in self.variants.items():
-            variants[k] = random.choice(choices)
-        # Select a writer for each attribute and generate the str.
-        written_attrs = dict()
-        for attr_name, attr in attributes.items():
-            writer = random.choice(self.writers[attr_name])
-            if isinstance(attr, (list, tuple)):
-                written_attrs[attr_name] = writer(*attr).format(**variants)
-            else:
-                written_attrs[attr_name] = writer(attr).format(**variants)
-        # Create final caption
-        final_caption = selected_structure.format(**written_attrs, **variants).strip()
+        # Fill variants and attributes
+        final_caption = self.get_variant(attributes, selected_structure).strip()
         # remove multiple spaces and spaces in front of "."
         return re.sub(' +', ' ', final_caption).replace(" .", ".")
