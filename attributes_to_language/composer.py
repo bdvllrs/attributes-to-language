@@ -80,16 +80,16 @@ class Composer:
         if self.modifiers is not None:
             for modifier in self.modifiers:
                 selected_structure = modifier(selected_structure)
+        # Switch groups
+        original_groups = re.findall(r"<[^>]+>", selected_structure)
+        groups = np.random.permutation(original_groups)
+        for original_group, group in zip(original_groups, groups):
+            selected_structure = selected_structure.replace(original_group, group[1:-1])
         # Get attributes
         defined_attr = dict()
         for name, attr in attributes.items():
             defined_attr[name] = self.get_attribute(name, attr)
         # Fill variants and attributes
         final_caption = self.get_variant(defined_attr, selected_structure).strip()
-        # Switch groups
-        original_groups = re.findall(r"<[^>]+>", final_caption)
-        groups = np.random.permutation(original_groups)
-        for original_group, group in zip(original_groups, groups):
-            final_caption = final_caption.replace(original_group, group[1:-1])
         # remove multiple spaces and spaces in front of "."
         return re.sub(' +', ' ', final_caption).replace(" .", ".")
