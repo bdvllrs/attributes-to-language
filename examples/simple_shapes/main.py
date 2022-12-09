@@ -18,12 +18,12 @@ if __name__ == '__main__':
     # Templates for the overall text. The items in {} can come from the associated key in the "variants" dict attributes
     # or from a kwargs given to the composer method.
     script_structures = [
-        "{start} {size} {colorBefore} {shape}, {located} {in_the} {location}{link} {rotation}.",
-        # "{start} {color} {size} {shape}, {located} {in_the} {location}{link} {rotation}.",
-        # "{start} {size} {shape} in {color} color, {located} {in_the} {location}{link} {rotation}.",
-        # "{start} {size} {shape} in {color} color{link} {located} {in_the} {location} and {is?}{rotation}.",
-        # "{start} {size} {color} {shape}{link} {located} {in_the} {location} and {is?}{rotation}.",
-        # "{start} {color} {size} {shape}{link} {located} {in_the} {location} and {is?}{rotation}.",
+        "{start} {size} {colorBefore} {shape}, <{located}{in_the} {location}>{link} <{rotation}>.",
+        "{start} {color} {size} {shape}, {located} {in_the} {location}{link} {rotation}.",
+        "{start} {size} {shape} in {color} color, {located} {in_the} {location}{link} {rotation}.",
+        "{start} {size} {shape} in {color} color{link} {located} {in_the} {location} and {is?}{rotation}.",
+        "{start} {size} {color} {shape}{link} {located} {in_the} {location} and {is?}{rotation}.",
+        "{start} {color} {size} {shape}{link} {located} {in_the} {location} and {is?}{rotation}.",
     ]
 
     start_variant = ["A", "It is a", "This is a", "There is a",
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     variants = {
         "start": start_variant,
         "colorBefore": ["{color}", "{color} colored"],
-        "located": ["", "located"],
+        "located": ["", "located "],
         "in_the": ["in the", "at the"],
         "link": [". It is", ", and is"],
         "is?": ["", "is "]

@@ -2,6 +2,8 @@ import random
 
 import re
 
+import numpy as np
+
 
 class Composer:
     def __init__(self, script_structures, available_writers, variants=None, modifiers=None):
@@ -84,5 +86,10 @@ class Composer:
             defined_attr[name] = self.get_attribute(name, attr)
         # Fill variants and attributes
         final_caption = self.get_variant(defined_attr, selected_structure).strip()
+        # Switch groups
+        original_groups = re.findall(r"<[^>]+>", final_caption)
+        groups = np.random.permutation(original_groups)
+        for original_group, group in zip(original_groups, groups):
+            final_caption = final_caption.replace(original_group, group[1:-1])
         # remove multiple spaces and spaces in front of "."
         return re.sub(' +', ' ', final_caption).replace(" .", ".")
