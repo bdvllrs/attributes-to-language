@@ -26,6 +26,8 @@ if __name__ == '__main__':
         # The < and > delimit groups. Groups are then randomly permuted.
         # For example "<hello> <world>" will yield either "hello world" or "world hello".
         # Groups can contain variant or attribute tokens.
+        # Note: group rotation is the last executed steps, so the "_next" or "_prev" elements in the attributes dict for
+        # callable variants correspond to the script order, and not the final one."
         "{start} {size} {colorBefore} {shape}, <{located}{in_the} {location}>{link} <{rotation}>.",
         "{start} {color} {size} {shape}, {located} {in_the} {location}{link} {rotation}.",
         "{start} {size} {shape} in {color} color, {located} {in_the} {location}{link} {rotation}.",
