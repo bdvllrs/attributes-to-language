@@ -5,13 +5,16 @@ from writers import writers
 
 
 def a_has_n(sentence):
+    """
+    This replaces {n?} in the sentence with either "n" if the following letter is a vowel, or nothing otherwise.
+    """
     def aux(attributes):  # the variant callable must receive an "attributes" parameter.
         vowels = ["a", "e", "i", "o", "u"]
         # the "_next" represent the name of the next token if it is an attribute token and if it exists.
         # similarly, "_prev" represent the name of the previous token.
         if attributes[attributes["_next"]][0] in vowels:
-            return sentence.format(**{"n?": "n"})
-        return sentence.format(**{"n?": ""})
+            return sentence.replace("{n?}", "n")
+        return sentence.replace("n?", "")
 
     return aux
 
