@@ -49,8 +49,12 @@ class Composer:
     def get_variant(self, attributes, caption):
         regex = r"\{([^\}]+)\}"
         updates = {}
-        for match in re.finditer(regex, caption):
-            name = match.group(1)
+        names = list(map(lambda x: x, re.findall(regex, caption)))
+        for k, name in enumerate(names):
+            if k >= 1 and names[k - 1] in attributes.keys():
+                attributes['_prev'] = names[k - 1]
+            if k < len(names) - 1 and names[k + 1] in attributes.keys():
+                attributes['_next'] = names[k + 1]
             updates[name] = self.chose_element(attributes, name)
 
         if not len(updates):
