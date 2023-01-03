@@ -6,6 +6,14 @@ import numpy as np
 from attributes_to_language.utils import COLORS_LARGE_SET, get_closest_key, COLORS_SPARSE
 
 
+def choose_text(text, choices):
+    if type(text) is list:
+        if "val" not in choices:
+            choices['val'] = random.randint(0, len(text) - 1)
+        text = text[choices['val']]
+    return text, choices
+
+
 class Writer:
     """
     Writer instances generate the text associated to a specific value of an attribute.
@@ -16,14 +24,18 @@ class Writer:
         self.caption = caption if caption is not None else "{val}"
         self.variants = variants if variants is not None else {}
 
-    def __call__(self, val):
+    def __call__(self, val, choices=None):
         variants = dict()
-        for k, choices in self.variants.items():
-            variants[k] = random.choice(choices)
+        if choices is None:
+            choices = dict()
+        for k, possible_variants in self.variants.items():
+            if k not in choices:
+                choices[k] = random.randint(0, len(possible_variants) - 1)
+            variants[k] = possible_variants[choices[k]]
 
         val = str(val).format(**variants)
         text = self.caption.format(val=val, **variants)
-        return text
+        return text, choices
 
 
 class OptionsWriter(Writer):
@@ -31,10 +43,15 @@ class OptionsWriter(Writer):
         super(OptionsWriter, self).__init__(caption, variants)
         self.choices = choices
 
-    def __call__(self, val):
+    def __call__(self, val, choices=None):
         assert val in self.choices, f"{self.choices} does not contain options for {val}"
-        selected_option = random.choice(self.choices[val])
-        return super(OptionsWriter, self).__call__(selected_option)
+        if choices is None:
+            choices = dict()
+        if "val" not in choices:
+            choices["val"] = random.randint(0, len(self.choices[val]) - 1)
+        selected_option = self.choices[val][choices['val']]
+        text, variant_choices = super(OptionsWriter, self).__call__(selected_option, choices)
+        return text, {**choices, **variant_choices}
 
 
 class QuantizedWriter(Writer):
@@ -45,12 +62,14 @@ class QuantizedWriter(Writer):
         self.labels = dict() if labels is None else labels
         self.norm = norm
 
-    def __call__(self, *val):
+    def __call__(self, *val, choices=None):
+        if choices is None:
+            choices = dict()
         quantized_val = get_closest_key(self.quantized_values, val, self.norm)
         text = self.labels[quantized_val]
-        if type(text) is list:
-            text = random.choice(text)
-        return super(QuantizedWriter, self).__call__(text)
+        text, choices = choose_text(text, choices)
+        text, variant_choices = super(QuantizedWriter, self).__call__(text, choices)
+        return text, {**choices, **variant_choices}
 
 
 class BinsWriter(Writer):
@@ -59,12 +78,14 @@ class BinsWriter(Writer):
         self.bins = bins
         self.labels = dict() if labels is None else labels
 
-    def __call__(self, val):
+    def __call__(self, val, choices=None):
+        if choices is None:
+            choices = dict()
         index = np.digitize([val], self.bins)[0]
         text = self.labels[index]
-        if type(text) is list:
-            text = random.choice(text)
-        return super(BinsWriter, self).__call__(text)
+        text, choices = choose_text(text, choices)
+        text, variant_choices = super(BinsWriter, self).__call__(text, choices)
+        return text, {**choices, **variant_choices}
 
 
 class Bins2dWriter(Writer):
@@ -73,16 +94,17 @@ class Bins2dWriter(Writer):
         self.bins = bins
         self.labels = dict() if labels is None else labels
 
-    def __call__(self, *val):
+    def __call__(self, *val, choices=None):
+        if choices is None:
+            choices = dict()
         label = self.labels
         for k in range(self.bins.shape[0]):
             bins = self.bins[k]
             index = np.digitize([val[k]], bins)[0]
             label = label[index]
-        text = label
-        if type(text) is list:
-            text = random.choice(text)
-        return super(Bins2dWriter, self).__call__(text)
+        text, choices = choose_text(label, choices)
+        text, variant_choices = super(Bins2dWriter, self).__call__(text, choices)
+        return text, {**choices, **variant_choices}
 
 
 class ContinuousAngleWriter(Writer):
@@ -90,7 +112,7 @@ class ContinuousAngleWriter(Writer):
         super(ContinuousAngleWriter, self).__init__(caption, variants)
         self.sampling = sampling
 
-    def __call__(self, angle):
+    def __call__(self, angle, choices=None):
         """
         Args:
             angle: Angle of the object in radians
@@ -99,4 +121,4 @@ class ContinuousAngleWriter(Writer):
             angle = 2 * np.pi + angle
         # round to every 5 degrees and set in degrees
         deg = int(self.sampling * round(angle * 360 / (2 * np.pi) / self.sampling)) % 360
-        return super(ContinuousAngleWriter, self).__call__(deg)
+        return super(ContinuousAngleWriter, self).__call__(deg, choices)

@@ -51,12 +51,17 @@ if __name__ == '__main__':
     }
 
     composer = Composer(script_structures, writers, variants)
+    choices = {'structure': 0, 'groups': [0, 1], 'writers': {'shape': {'_writer': 0, 'val': 1}, 'rotation': {'_writer': 2, 'anti_clock': 0}, 'color': {'_writer': 0}, 'size': {'_writer': 0, 'val': 0}, 'location': {'_writer': 0, 'val': 1, 'located': 1, 'prefix': 1, 'postfix': 0, 'of_image': 1}}, 'variants': {'start': 0, 'colorBefore': 1, 'located': 1, 'in_the': 0, 'link': 0}}
+
+    "A big slate blue colored triangle, located in the lower right. It is rotated 30 degrees."
 
     for k in range(5):
-        print(composer({
+        sentence, choices = composer({
             "shape": 2,
             "rotation": np.pi / 6,
             "color": (129, 76, 200),
             "size": 20,
             "location": (29, 8)
-        }))
+        }, choices)
+        print(sentence)
+        print(choices)
