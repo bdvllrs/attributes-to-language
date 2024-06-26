@@ -1,6 +1,5 @@
 import random
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
 from typing import Any, TypeVar
 
 import numpy as np
