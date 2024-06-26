@@ -3,6 +3,7 @@ from collections.abc import Callable, Mapping
 import numpy as np
 
 from attributes_to_language.composer import Composer
+from attributes_to_language.types import Choices
 
 from .writers import writers
 
@@ -15,7 +16,7 @@ def a_has_n(sentence: str) -> Callable[[Mapping[str, str]], str]:
 
     def aux(
         attributes: Mapping[str, str],
-    ) -> str:  # the variant callable must receive an "attributes" parameter.
+    ):  # the variant callable must receive an "attributes" parameter.
         vowels = ["a", "e", "i", "o", "u"]
         # the "_next" represent the name of the next token if it is an attribute token
         # and if it exists.
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     }
 
     composer = Composer(script_structures, writers, variants)
-    choices = {
+    choices: Choices = {
         "structure": 0,
         "groups": [0, 1],
         "writers": {
