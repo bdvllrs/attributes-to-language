@@ -1,11 +1,10 @@
 from collections.abc import Callable, Mapping
 
 import numpy as np
+from writers import writers
 
 from attributes_to_language.composer import Composer
 from attributes_to_language.types import Choices
-
-from .writers import writers
 
 
 def a_has_n(sentence: str) -> Callable[[Mapping[str, str]], str]:

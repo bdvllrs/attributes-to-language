@@ -24,60 +24,43 @@ def choose_element(key: str, options: Sequence[_T], choices: ChoicesT | Choices)
     return choice
 
 
-@dataclass
-class Group:
-    start: int
-    end: int
-    content: str
-
-
-@dataclass
-class Token:
-    start: int
-    end: int
-    content: str
-
-
-def parse_structure(structure: str) -> tuple[list[Group], list[Token]]:
-    groups: list[Group] = []
-    tokens: list[Token] = []
-    is_in_token = False
-    cur_token: Token | None = None
+def parse_groups(structure: str) -> list[str]:
+    groups: list[str] = []
     is_in_group = False
-    cur_group: Group | None = None
-    for k, letter in enumerate(structure):
-        match letter:
-            case "{" if not is_in_token:
-                is_in_token = True
-                cur_token = Token(k + 1, -1, "")
-            case "}" if is_in_token:
-                is_in_token = False
-                assert cur_token is not None
-                cur_token.end = k
-                tokens.append(cur_token)
-                cur_token = None
-            case x if is_in_group and is_in_token:
-                assert cur_token is not None
-                cur_token.content += x
-                assert cur_group is not None
-                cur_group.content += x
-            case x if is_in_token:
-                assert cur_token is not None
-                cur_token.content += x
-            case "<" if not is_in_group:
-                is_in_group = True
-                cur_group = Group(k + 1, -1, "<")
-            case ">" if is_in_group:
-                is_in_group = False
-                assert cur_group is not None
-                cur_group.end = k
-                cur_group.content += ">"
-                groups.append(cur_group)
-                cur_group = None
-            case x if is_in_group:
-                assert cur_group is not None
-                cur_group.content += x
-    return groups, tokens
+    cur_group: str = ""
+    for letter in structure:
+        if letter == "<" and not is_in_group:
+            is_in_group = True
+            cur_group = "<"
+        if letter == ">" and is_in_group:
+            is_in_group = False
+            assert cur_group is not None
+            cur_group += ">"
+            groups.append(cur_group)
+            cur_group = ""
+        if letter != "<" and is_in_group:
+            assert cur_group is not None
+            cur_group += letter
+    return groups
+
+
+def parse_tokens(structure: str) -> list[str]:
+    tokens: list[str] = []
+    is_in_token = False
+    cur_token: str = ""
+    for letter in structure:
+        if letter == "{" and not is_in_token:
+            is_in_token = True
+            cur_token = ""
+        if letter == "}" and is_in_token:
+            is_in_token = False
+            assert cur_token is not None
+            tokens.append(cur_token)
+            cur_token = ""
+        if letter != "{" and is_in_token:
+            assert cur_token is not None
+            cur_token += letter
+    return tokens
 
 
 def remove_extra_spaces(text: str) -> str:
@@ -108,12 +91,7 @@ class Composer:
         self.writers = available_writers
         self.variants = variants or {}
         self.modifiers = modifiers or {}
-        self.groups: list[list[Group]] = []
-        self.tokens: list[list[Token]] = []
-        for structure in self.script_structures:
-            groups, tokens = parse_structure(structure)
-            self.groups.append(groups)
-            self.tokens.append(tokens)
+        self.groups: list[list[str]] = [parse_groups(s) for s in self.script_structures]
 
     def get_attribute(
         self, name: str, value: Any, choices: ChoicesT
@@ -150,23 +128,21 @@ class Composer:
         attributes: ComputedAttributeT,
         caption: str,
         choices: ChoicesT,
-        tokens: Sequence[Token],
     ) -> str:
+        tokens = parse_tokens(caption)
         updates: dict[str, str] = {}
         for k, token in enumerate(tokens):
-            if k >= 1 and tokens[k - 1].content in attributes:
-                attributes["_prev"] = tokens[k - 1].content
-            if k < len(tokens) - 1 and tokens[k + 1].content in attributes:
-                attributes["_next"] = tokens[k + 1].content
-            updates[token.content] = self.chose_element(
-                attributes, token.content, choices
-            )
+            if k >= 1 and tokens[k - 1] in attributes:
+                attributes["_prev"] = tokens[k - 1]
+            if k < len(tokens) - 1 and tokens[k + 1] in attributes:
+                attributes["_next"] = tokens[k + 1]
+            updates[token] = self.chose_element(attributes, token, choices)
 
         if not len(updates):
             return caption
 
         caption = caption.format(**updates)
-        return self.get_variant(attributes, caption, choices, tokens)
+        return self.get_variant(attributes, caption, choices)
 
     def __call__(self, attributes: AttributeT, choices: Choices | None = None):
         """
@@ -186,7 +162,6 @@ class Composer:
         assert "structure" in choices
         struct_id = choices["structure"]
         original_groups = self.groups[struct_id]
-        tokens = self.tokens[struct_id]
         # Execute script_transform
         if self.modifiers is not None:
             for modifier in self.modifiers:
@@ -196,9 +171,7 @@ class Composer:
             choices["groups"] = np.random.permutation(len(original_groups)).tolist()
         groups = [original_groups[x] for x in choices["groups"]]
         for original_group, group in zip(original_groups, groups, strict=False):
-            selected_structure = selected_structure.replace(
-                original_group.content, group.content[1:-1]
-            )
+            selected_structure = selected_structure.replace(original_group, group[1:-1])
         # Get attributes
         defined_attr = dict()
         if "writers" not in choices:
@@ -214,7 +187,7 @@ class Composer:
         if "variants" not in choices:
             choices["variants"] = dict()
         final_caption = self.get_variant(
-            defined_attr, selected_structure, choices["variants"], tokens
+            defined_attr, selected_structure, choices["variants"]
         ).strip()
         # remove multiple spaces and spaces in front of "."
         return remove_extra_spaces(final_caption).replace(" .", "."), choices
