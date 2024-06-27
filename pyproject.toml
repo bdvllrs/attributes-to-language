@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "attributes-to-language"
-version = "0.4.0.dev"
+version = "0.4.0"
 description = "Parameterized language from attributes and grammar"
 authors = ["bdvllrs <bdvllrs@gmail.com>"]
 readme = "README.md"

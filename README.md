@@ -5,7 +5,7 @@
 # Setup
 Latest stable
 ```
-pip install git+https://github.com/bdvllrs/attributes-to-language.git@v0.1.1
+pip install git+https://github.com/bdvllrs/attributes-to-language.git@v0.4.0
 ```
 Master
 ```
